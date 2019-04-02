@@ -65,7 +65,7 @@ create table if not exists person (
                     context.SaveChanges();
                 }
 
-                //pass through the exact same sql that context.People uses (does not happen with "select * from person" despite the actual query results being the same)
+                //the error does not happen with "select * from person" (despite the actual query results being the same)
                 var test = context.People.SqlQuery("select p.* from person p");
                 var asList = test.ToList(); //this throws an IndexOutOfRangeException
             }

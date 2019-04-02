@@ -22,7 +22,7 @@ namespace SQLiteTest
             ToTable("person");
             HasKey(x => x.Id);
 
-            Property(x => x.Id).HasColumnName("id").HasColumnType("integer").IsRequired();
+            Property(x => x.Id).HasColumnName("person_id").HasColumnType("integer").IsRequired();
             Property(x => x.Name).HasColumnName("name").HasColumnType("varchar").IsUnicode(false).IsRequired();
         }
     }
@@ -43,7 +43,7 @@ namespace SQLiteTest
     {
         const string createSql = @"
 create table if not exists person (
-    id integer primary key autoincrement not null,
+    person_id integer primary key autoincrement not null,
     name varchar(64) not null
 )";
 
@@ -54,17 +54,20 @@ create table if not exists person (
                 context.Database.ExecuteSqlCommand(createSql);
 
                 var people = context.People.ToList();
-                if (!people.Any())
+                if (people.Count < 5)
                 {
-                    var person = context.People.Create();
-                    person.Id = 0;
-                    person.Name = "Test Person";
-                    context.People.Add(person);
+                    for (int i = 0; i < 5; i++)
+                    {
+                        var person = context.People.Create();
+                        person.Name = $"Test Person {i:D2}";
+                        context.People.Add(person);
+                    }
                     context.SaveChanges();
                 }
 
-                var test = context.People.SqlQuery(context.People.Sql);
-                var asList = test.ToList();
+                //pass through the exact same sql that context.People uses (does not happen with "select * from person" despite the actual query results being the same)
+                var test = context.People.SqlQuery("select p.* from person p");
+                var asList = test.ToList(); //this throws an IndexOutOfRangeException
             }
         }
     }
